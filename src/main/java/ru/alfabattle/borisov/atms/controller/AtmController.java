@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
 import ru.alfabattle.borisov.atms.model.JSONResponseBankATMDetails;
 import ru.alfabattle.borisov.atms.model.JSONResponseBankATMStatus;
 
@@ -25,11 +26,13 @@ public class AtmController {
 
     private final RestTemplate restTemplate;
     private final Environment env;
+    private final WebSocketStompClient stompClient;
 
     @Autowired
-    public AtmController(RestTemplate restTemplate, Environment env) {
+    public AtmController(RestTemplate restTemplate, Environment env, WebSocketStompClient webSocketStompClient) {
         this.restTemplate = restTemplate;
         this.env = env;
+        this.stompClient = webSocketStompClient;
     }
 
     @GetMapping(value = ATM_SERVICE_ATMS)

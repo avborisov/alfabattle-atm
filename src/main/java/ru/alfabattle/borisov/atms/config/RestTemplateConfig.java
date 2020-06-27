@@ -18,7 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.security.KeyStore;
 
 @Configuration
-public class AppConfig {
+public class RestTemplateConfig {
 
     @Value("${server.ssl.key-store-password}")
     private String keyStorePass;
