@@ -23,11 +23,14 @@ public class AtmController {
     public static final String ATM_SERVICE_ATMS_STATUS = "/atm-service/atms/status";
     public static final String ATM_SERVICE_ATMS = "/atm-service/atms";
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+    private final Environment env;
 
     @Autowired
-    Environment env;
+    public AtmController(RestTemplate restTemplate, Environment env) {
+        this.restTemplate = restTemplate;
+        this.env = env;
+    }
 
     @GetMapping(value = ATM_SERVICE_ATMS)
     public ResponseEntity<JSONResponseBankATMDetails> getAtms() {
