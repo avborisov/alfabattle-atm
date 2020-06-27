@@ -6,7 +6,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
 import ru.alfabattle.borisov.atms.model.alfabank.ATMDetails;
 import ru.alfabattle.borisov.atms.model.alfabank.BankATMDetails;
 import ru.alfabattle.borisov.atms.model.alfabank.JSONResponseBankATMDetails;
@@ -19,9 +18,7 @@ import ru.alfabattle.borisov.atms.services.CoordinateUtils;
 import java.awt.*;
 import java.net.URI;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -120,12 +117,8 @@ public class AtmController {
 
             Map<Integer, Point> atmLocations = data.getAtms().stream()
                     .filter(atm -> {
-                        if (payments == null || !payments.booleanValue()) {
-                            return true;
-                        }
-                        if (atm.getServices().getPayments().contains("Y")) {
-                            return true;
-                        }
+                        if (payments == null || !payments.booleanValue()) return true;
+                        if (atm.getServices().getPayments().contains("Y")) return true;
                         return false;
                     })
                     .collect(Collectors.toMap(ATMDetails::getDeviceId, this::getPoint));
