@@ -2,7 +2,7 @@ package ru.alfabattle.borisov.atms.model;
 
 import lombok.Data;
 
-import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
@@ -17,7 +17,7 @@ public class ATMDetails {
   private Integer deviceId;
   private String nfc;
   private String publicAccess;
-  private OffsetDateTime recordUpdated;
+  private ZonedDateTime recordUpdated;
   private ATMServices services;
   private SupportInfo supportInfo;
   private ATMAccess timeAccess;
