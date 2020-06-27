@@ -1,4 +1,4 @@
-package ru.alfabattle.borisov.atms.model;
+package ru.alfabattle.borisov.atms.model.alfabank;
 
 import lombok.Data;
 
