@@ -7,6 +7,7 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -19,17 +20,20 @@ import java.security.KeyStore;
 @Configuration
 public class AppConfig {
 
+    @Value("${server.ssl.key-store-password}")
+    private String keyStorePass;
+
     @Bean
     public RestTemplate getRestTemplate(@Autowired Environment env) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
 
         KeyStore keyStore = KeyStore.getInstance(env.getProperty("server.ssl.key-store-type"));
         ClassPathResource keystoreResource = new ClassPathResource("keystore");
-        keyStore.load(keystoreResource.getInputStream(), env.getProperty("server.ssl.key-store-password").toCharArray());
+        keyStore.load(keystoreResource.getInputStream(), keyStorePass.toCharArray());
 
         SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(new SSLContextBuilder()
                 .loadTrustMaterial(new TrustSelfSignedStrategy())
-                .loadKeyMaterial(keyStore, env.getProperty("server.ssl.key-store-password").toCharArray()).build(),
+                .loadKeyMaterial(keyStore, keyStorePass.toCharArray()).build(),
                 NoopHostnameVerifier.INSTANCE);
 
         HttpClient httpClient = HttpClients.custom().setSSLSocketFactory(socketFactory)

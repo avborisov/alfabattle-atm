@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>ru.alfabattle.borisov</groupId>
-    <artifactId>two-way-ssl</artifactId>
+    <artifactId>alfabattle-atms</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Alfabattle Atms</name>
     <description>2-Way ssl task</description>
