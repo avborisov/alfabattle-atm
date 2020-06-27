@@ -14,9 +14,15 @@ import ru.alfabattle.borisov.atms.model.alfabank.JSONResponseBankATMStatus;
 import ru.alfabattle.borisov.atms.model.gateway.AtmResponse;
 import ru.alfabattle.borisov.atms.model.gateway.ErrorResponse;
 import ru.alfabattle.borisov.atms.services.ArmConverter;
+import ru.alfabattle.borisov.atms.services.CoordinateUtils;
 
+import java.awt.*;
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/atms")
@@ -69,7 +75,7 @@ public class AtmController {
         log.info("GET atm status invoked, deviceId: {}", deviceId);
 
         if (!isNumeric(deviceId)) {
-            return new ResponseEntity(new ErrorResponse("incorrect deviceId"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(new ErrorResponse("atm not found"), HttpStatus.NOT_FOUND);
         }
 
         try {
@@ -83,7 +89,7 @@ public class AtmController {
                     .filter(atm -> atm.getDeviceId().equals(Integer.valueOf(deviceId)))
                     .findFirst().orElse(null);
             if (atmDetails == null) {
-                return new ResponseEntity(new ErrorResponse("404"), HttpStatus.NOT_FOUND);
+                return new ResponseEntity(new ErrorResponse("atm not found"), HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity(ArmConverter.convert(atmDetails), HttpStatus.OK);
         } catch (Exception ex) {
@@ -91,6 +97,58 @@ public class AtmController {
         }
 
         return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/nearest")
+    public ResponseEntity<AtmResponse> getNearestAtm(
+            @RequestParam final String latitude,
+            @RequestParam final String longitude,
+            @RequestParam final Boolean payments) {
+        log.info("GET NearestAtm invoked, latitude: {}, longitude: {}, payments: {}", latitude, longitude, payments);
+
+        if (latitude == null || longitude == null) {
+            return new ResponseEntity(new ErrorResponse("atm not found"), HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            ResponseEntity<JSONResponseBankATMDetails> response = getAtms();
+            BankATMDetails data = response.getBody().getData();
+            if (data == null) {
+                return new ResponseEntity(new ErrorResponse("alfa api return no data"), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            log.info("Alfa API return {} atms", data.getAtms().size());
+
+            Map<Integer, Point> atmLocations = data.getAtms().stream()
+                    .filter(atm -> {
+                        if (payments == null || !payments.booleanValue()) {
+                            return true;
+                        }
+                        if (atm.getServices().getPayments().contains("Y")) {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toMap(ATMDetails::getDeviceId, this::getPoint));
+
+            ATMDetails atm = data.getAtms().stream().filter(atmDetail -> {
+                Point point = new Point();
+                point.setLocation(Double.parseDouble(latitude), Double.parseDouble(longitude));
+                return atmDetail.getDeviceId().equals(CoordinateUtils.getClosestDeviceId(point, atmLocations));
+            }).findFirst().orElse(null);
+
+            return new ResponseEntity(ArmConverter.convert(atm), HttpStatus.OK);
+
+        } catch (Exception ex) {
+            log.error("Something wrong with request to endpoint", ex);
+        }
+
+        return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private Point getPoint(ATMDetails atm) {
+        Point point = new Point();
+        point.setLocation(Double.parseDouble(atm.getCoordinates().getLatitude()), Double.parseDouble(atm.getCoordinates().getLongitude()));
+        return point;
     }
 
     private HttpEntity<String> getAtmsApiHeaders() {
